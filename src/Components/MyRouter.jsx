@@ -9,6 +9,7 @@ import DistributerList from '../Pages/Distributers/DistributerList'
 import PendingOrders from '../Pages/Orders/PendingOrders'
 import FullfillOrders from '../Pages/Orders/FullfillOrders'
 import OverView from '../Pages/Dashboard/OverView'
+import OrderDetails from '../Pages/Orders/OrderDetails'
 
 
 const MyRouter = () => {
@@ -25,6 +26,7 @@ const MyRouter = () => {
                     <Route path='/dist/distlist' element={<DistributerList />} />
                     <Route path='/orders/pendord' element={<PendingOrders />} />
                     <Route path='/orders/fullfillord' element={<FullfillOrders />} />
+                    <Route path='/order/details' element={<OrderDetails/>}/>
                 </Routes>
             </Box>
         </>

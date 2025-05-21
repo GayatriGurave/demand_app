@@ -4,21 +4,29 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   TextField,
   Typography,
+  Paper,
+  Snackbar,
+  Alert,
+  IconButton,
 } from '@mui/material';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate from react-router-dom
+import { useNavigate } from 'react-router-dom';
 
 const AddProducts = () => {
   const [selectImage, setSelectImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [category, setCategory] = useState(''); // controlled category field
-  const navigate = useNavigate(); // Initialize navigate function for routing
+  const [category, setCategory] = useState('');
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const navigate = useNavigate();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -30,72 +38,122 @@ const AddProducts = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const reqData = Object.fromEntries(formData.entries());
-    reqData.category = category; // add category manually
+    const formData = new FormData();
+    formData.append('title', e.target.title.value);
+    formData.append('prodType', e.target.prodType.value);
+    formData.append('category', category);
+    formData.append('price', e.target.price.value);
+    formData.append('weight', e.target.weight.value);
+    if (selectImage) formData.append('prodimage', selectImage);
 
     try {
       const result = await axios.post(
         'http://localhost:5000/api/createproduct',
-        {
-          ...reqData,
-          prodimage: selectImage,
-        },
+        formData,
         {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
         }
       );
-      console.log(result.data);
-      alert(result.data.message);
+      setSnackbar({ open: true, message: result.data.message || "Product created!", severity: 'success' });
+      // Optionally reset form
+      setSelectImage(null);
+      setPreview(null);
+      setCategory('');
+      e.target.reset();
     } catch (error) {
-      alert('Failed to create product.');
+      setSnackbar({ open: true, message: 'Failed to create product.', severity: 'error' });
       console.error(error);
     }
   };
 
   const handleViewProductList = () => {
-    navigate('/products/prodlist'); // Navigate to the product list page
+    navigate('/products/prodlist');
   };
 
   return (
     <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
       minHeight="100vh"
-      bgcolor="#f5f5f5"
+      sx={{
+        background: "linear-gradient(120deg, #f8fafc 0%, #cfd9df 100%)",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 4,
+      }}
     >
-      <Card sx={{ width: 500, p: 3, boxShadow: 6 }}>
+      <Paper elevation={8} sx={{
+        maxWidth: 480,
+        width: '100%',
+        borderRadius: 4,
+        p: { xs: 2, sm: 4 },
+        boxShadow: '0 8px 32px rgba(0,0,0,0.09)',
+        background: "rgba(255,255,255,0.95)",
+      }}>
+        <CardHeader
+          avatar={<Inventory2Icon color="primary" sx={{ fontSize: 40 }} />}
+          title={<Typography variant="h5" fontWeight="bold">Add New Product</Typography>}
+          sx={{ textAlign: 'center', pb: 0 }}
+        />
         <CardContent>
-          <Typography variant="h5" gutterBottom align="center">
-            Add New Product
-          </Typography>
-
           <Box
             component="form"
             onSubmit={handleSubmit}
-            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+            sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}
           >
-            <TextField label="Title" name="title" required fullWidth />
-            <TextField label="Product Type" name="prodType" required fullWidth />
-
             <TextField
-              type="file"
-              name="prodimage"
-              onChange={handleImageChange}
+              label="Title"
+              name="title"
+              required
               fullWidth
+              variant="outlined"
+              helperText="Enter the product name"
+            />
+            <TextField
+              label="Product Type"
+              name="prodType"
+              required
+              fullWidth
+              variant="outlined"
+              helperText="E.g. Dairy, Bakery, etc."
             />
 
-            {preview && (
-              <Box
-                component="img"
-                src={preview}
-                alt="Preview"
-                sx={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 1 }}
+            <Box
+              sx={{
+                border: '2px dashed #90caf9',
+                borderRadius: 2,
+                p: 2,
+                textAlign: 'center',
+                position: 'relative',
+                background: preview ? "#f0f7ff" : "#fafbfc",
+                cursor: 'pointer',
+                transition: 'border-color 0.2s',
+                '&:hover': { borderColor: '#1976d2' },
+              }}
+              component="label"
+            >
+              <input
+                type="file"
+                name="prodimage"
+                accept="image/*"
+                hidden
+                onChange={handleImageChange}
               />
-            )}
+              {preview ? (
+                <Box
+                  component="img"
+                  src={preview}
+                  alt="Preview"
+                  sx={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 2, mb: 1 }}
+                />
+              ) : (
+                <Box>
+                  <AddPhotoAlternateIcon color="primary" sx={{ fontSize: 48, mb: 1 }} />
+                  <Typography color="text.secondary">Click to upload product image</Typography>
+                </Box>
+              )}
+            </Box>
 
             <FormControl required fullWidth>
               <InputLabel>Category</InputLabel>
@@ -119,26 +177,62 @@ const AddProducts = () => {
               required
               type="number"
               fullWidth
+              variant="outlined"
+              inputProps={{ min: 0 }}
+              helperText="Set the price in INR"
             />
 
-            <TextField label="Weight" name="weight" required fullWidth />
+            <TextField
+              label="Weight"
+              name="weight"
+              required
+              fullWidth
+              variant="outlined"
+              helperText="E.g. 500g, 1L, etc."
+            />
 
-            <Button variant="contained" type="submit" size="large">
+            <Button
+              variant="contained"
+              type="submit"
+              size="large"
+              sx={{
+                mt: 2,
+                fontWeight: 'bold',
+                letterSpacing: 1,
+                boxShadow: 2,
+                py: 1.2,
+                background: 'linear-gradient(90deg, #1976d2 40%, #64b5f6 100%)',
+              }}
+            >
               Create Product
             </Button>
 
-            {/* Add a button to navigate to Product List */}
             <Button
               variant="outlined"
               color="secondary"
               onClick={handleViewProductList}
-              sx={{ mt: 2 }}
+              sx={{ mt: 1 }}
             >
               View Product List
             </Button>
           </Box>
         </CardContent>
-      </Card>
+      </Paper>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
