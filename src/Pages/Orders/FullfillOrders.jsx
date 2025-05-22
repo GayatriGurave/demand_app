@@ -32,6 +32,7 @@ const FullfillOrders = () => {
         setAllOrders(response.data);
       } catch (error) {
         setAllOrders([]);
+        console.log(error);
       } finally {
         setLoading(false);
       }

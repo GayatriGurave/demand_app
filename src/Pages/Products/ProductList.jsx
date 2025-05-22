@@ -6,16 +6,28 @@ import {
   Paper,
   CircularProgress,
   Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import EditIcon from '@mui/icons-material/Edit';
 import axios from 'axios';
 
 const ProductList = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedProd, setSelectedProd] = useState(null);
+  const [newprice, setNewprice] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,6 +55,46 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
+  const openUpdateDialog = (product) => {
+    setSelectedProd(product);
+    setNewprice(product.price);
+    setOpenDialog(true);
+  };
+
+  const closeUpdateDialog = () => {
+    setOpenDialog(false);
+    setSelectedProd(null);
+    setNewprice('');
+  };
+
+  const updateProdPrice = async () => {
+    try {
+      const result = await axios.put("http://localhost:5000/api/updateprice", {
+        price: newprice,
+        prodId: selectedProd._id,
+      });
+
+      console.log(result.data);
+
+      // Update product in state
+      setProducts((prev) =>
+        prev.map((p) =>
+          p._id === selectedProd._id ? { ...p, price: newprice } : p
+        )
+      );
+
+      closeUpdateDialog();
+      setSnackbarOpen(true); // show success message
+    } catch (error) {
+      console.log("Error updating price:", error);
+    }
+  };
+
+  const handleSnackbarClose = (_, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  };
+
   const columns = [
     { field: 'serial', headerName: 'S.No.', width: 90, headerAlign: 'center', align: 'center' },
     { field: 'title', headerName: 'Title', flex: 1, minWidth: 120 },
@@ -50,6 +102,24 @@ const ProductList = () => {
     { field: 'category', headerName: 'Category', flex: 1, minWidth: 120 },
     { field: 'price', headerName: 'Price (₹)', flex: 1, minWidth: 100 },
     { field: 'weight', headerName: 'Weight', flex: 1, minWidth: 100 },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 130,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          size="small"
+          color="secondary"
+          startIcon={<EditIcon />}
+          onClick={() => openUpdateDialog(params.row)}
+        >
+          Update
+        </Button>
+      ),
+    },
   ];
 
   return (
@@ -99,12 +169,7 @@ const ProductList = () => {
 
         <Box sx={{ height: '70vh', width: '100%' }}>
           {loading ? (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              height="100%"
-            >
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
               <CircularProgress size={48} color="primary" />
             </Box>
           ) : (
@@ -148,6 +213,49 @@ const ProductList = () => {
             />
           )}
         </Box>
+
+        {/* Dialog for Updating Price */}
+        <Dialog
+          open={openDialog}
+          onClose={closeUpdateDialog}
+          PaperProps={{
+            sx: {
+              width: '500px',
+              maxWidth: '90vw',
+            },
+          }}
+        >
+          <DialogTitle>Update Price</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="New Price (₹)"
+              type="number"
+              fullWidth
+              value={newprice}
+              onChange={(e) => setNewprice(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={closeUpdateDialog}>Cancel</Button>
+            <Button variant="contained" onClick={updateProdPrice}>
+              Update
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar Notification */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={3000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+            Price updated successfully!
+          </Alert>
+        </Snackbar>
       </Paper>
     </Box>
   );
