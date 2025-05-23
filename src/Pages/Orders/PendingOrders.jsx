@@ -13,10 +13,10 @@ import {
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-
+import dayjs from 'dayjs';
 const statusColor = (status) => {
   switch (status?.toLowerCase()) {
     case 'pending': return 'warning';
@@ -104,14 +104,15 @@ const PendingOrders = () => {
                     <Typography variant='h6' fontWeight="bold" sx={{ flexGrow: 1 }}>
                       Order Date:
                     </Typography>
+
                     <Typography variant='body1'>
                       {order.orderDate
-                        ? new Date(order.orderDate).toLocaleString()
+                        ? dayjs(order.orderDate).format('DD/MM/YYYY, hh:mm A')
                         : 'N/A'}
                     </Typography>
                   </Box>
                   <Box display="flex" alignItems="center" mb={1}>
-                    <Typography variant='h6' fontWeight="bold" sx={{ flexGrow: 1 }}>
+                    <Typography variant='h6' fontWeight="bold" sx={{ flexGrow: 0.5 }}>
                       Status:
                     </Typography>
                     <Chip
@@ -121,8 +122,8 @@ const PendingOrders = () => {
                     />
                   </Box>
                   <Box display="flex" alignItems="center" mb={1}>
-                    <MonetizationOnIcon color="success" sx={{ mr: 1 }} />
-                    <Typography variant='h6' fontWeight="bold" sx={{ flexGrow: 1 }}>
+                    <CurrencyRupeeIcon color="success" sx={{ mr: 1 }} />
+                    <Typography variant='h6' fontWeight="bold" sx={{ flexGrow: 0.5 }}>
                       Total Amount:
                     </Typography>
                     <Typography variant='body1' color="text.secondary">

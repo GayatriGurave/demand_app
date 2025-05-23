@@ -5,52 +5,114 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  Stack,
+  Chip,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import axios from 'axios';
 
-const ProductList = () => {
-  const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
+const statusColor = (status) => {
+  switch ((status || '').toLowerCase()) {
+    case 'pending': return 'warning';
+    case 'completed': return 'success';
+    case 'cancelled': return 'error';
+    case 'approved': return 'success';
+    default: return 'info';
+  }
+};
+
+const FullfillOrders = () => {
+  const [allOrders, setAllOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchApprovedOrders = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/fetchproduct");
-        const data = response.data?.data || response.data;
-        if (!Array.isArray(data)) {
-          console.error("Expected an array from API but got:", data);
-          setProducts([]);
-          return;
-        }
-        const dataWithSerial = data.map((item, index) => ({
-          ...item,
-          id: item._id,
-          serial: index + 1,
-        }));
-        setProducts(dataWithSerial);
+        // Fetch only approved orders
+        const response = await axios.get('http://localhost:5000/api/approveorderstatus');
+        
+        setAllOrders(response.data.data || []);
+       
       } catch (error) {
-        setProducts([]);
-        console.error("Error fetching products:", error);
+        setAllOrders([]);
+        console.log(error);
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    fetchApprovedOrders();
   }, []);
 
   const columns = [
-    { field: 'serial', headerName: 'S.No.', width: 90, headerAlign: 'center', align: 'center' },
-    { field: 'title', headerName: 'Title', flex: 1, minWidth: 120 },
-    { field: 'prodType', headerName: 'Product Type', flex: 1, minWidth: 120 },
-    { field: 'category', headerName: 'Category', flex: 1, minWidth: 120 },
-    { field: 'price', headerName: 'Price (₹)', flex: 1, minWidth: 100 },
-    { field: 'weight', headerName: 'Weight', flex: 1, minWidth: 100 },
+    {
+      field: 'orderDate',
+      headerName: 'Order Date',
+      flex: 1,
+      minWidth: 160,
+      renderCell: (params) => {
+        const date = params.row?.orderDate;
+        return <span>{date ? new Date(date).toLocaleString() : 'N/A'}</span>;
+      }
+    },
+    {
+      field: 'orderStatus',
+      headerName: 'Status',
+      flex: 1,
+      minWidth: 120,
+      renderCell: (params) => (
+        <Chip
+          label={params.value || "Unknown"}
+          color={statusColor(params.value)}
+          sx={{ fontWeight: 'bold', fontSize: 15 }}
+        />
+      )
+    },
+    {
+      field: 'orderTotalAmount',
+      headerName: 'Total Amount',
+      flex: 1,
+      minWidth: 140,
+      type: 'number',
+      renderCell: (params) => (
+        <Typography color="success.main" fontWeight="bold">
+          ₹ {Number(params.value).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        </Typography>
+      )
+    },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      flex: 1,
+      minWidth: 120,
+      sortable: false,
+      filterable: false,
+      renderCell: (params) => (
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => navigate("/order/details", { state: params.row })}
+          sx={{
+            fontWeight: 'bold',
+            borderRadius: 2,
+            px: 2,
+            background: 'linear-gradient(90deg, #1976d2 40%, #64b5f6 100%)',
+            boxShadow: 2,
+            ':hover': {
+              background: 'linear-gradient(90deg, #1565c0 40%, #1976d2 100%)',
+            },
+          }}
+        >
+          Details
+        </Button>
+      )
+    }
   ];
+
+  const rows = allOrders.map((order, index) => ({
+    id: order._id || index,
+    ...order
+  }));
 
   return (
     <Box
@@ -69,50 +131,29 @@ const ProductList = () => {
           p: { xs: 2, sm: 4 },
           borderRadius: 4,
           boxShadow: '0 8px 32px rgba(0,0,0,0.09)',
-          position: 'relative',
           background: "rgba(255,255,255,0.97)",
         }}
       >
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h4" fontWeight="bold" color="primary">
-            Product List
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddCircleIcon />}
-            size="large"
-            onClick={() => navigate('/products/addprod')}
-            sx={{
-              fontWeight: 'bold',
-              letterSpacing: 1,
-              borderRadius: 3,
-              boxShadow: 3,
-              background: 'linear-gradient(90deg, #1976d2 40%, #64b5f6 100%)',
-              ':hover': {
-                background: 'linear-gradient(90deg, #1565c0 40%, #1976d2 100%)',
-              },
-            }}
-          >
-            Add New Product
-          </Button>
-        </Stack>
-
-        <Box sx={{ height: '70vh', width: '100%' }}>
+        <Typography
+          variant="h4"
+          fontWeight="bold"
+          color="primary"
+          align="center"
+          mb={4}
+        >
+          Approved Orders List
+        </Typography>
+        <Box sx={{ height: 500, width: '100%' }}>
           {loading ? (
-            <Box
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              height="100%"
-            >
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
               <CircularProgress size={48} color="primary" />
             </Box>
           ) : (
             <DataGrid
-              rows={products}
+              rows={rows}
               columns={columns}
-              pageSize={10}
-              rowsPerPageOptions={[5, 10, 20]}
+              pageSize={5}
+              rowsPerPageOptions={[5, 10]}
               disableSelectionOnClick
               sx={{
                 borderRadius: 2,
@@ -141,7 +182,7 @@ const ProductList = () => {
               components={{
                 NoRowsOverlay: () => (
                   <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-                    No products found. Click "Add New Product" to get started!
+                    No approved orders found.
                   </Box>
                 ),
               }}
@@ -153,4 +194,4 @@ const ProductList = () => {
   );
 };
 
-export default ProductList;
+export default FullfillOrders;

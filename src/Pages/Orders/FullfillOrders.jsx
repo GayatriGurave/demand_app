@@ -10,12 +10,15 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import dayjs from 'dayjs';
+import CurrencyRupeeIcon from '@mui/icons-material/CurrencyRupee';
 
 const statusColor = (status) => {
   switch ((status || '').toLowerCase()) {
     case 'pending': return 'warning';
     case 'completed': return 'success';
     case 'cancelled': return 'error';
+    case 'approved': return 'success';
     default: return 'info';
   }
 };
@@ -26,10 +29,11 @@ const FullfillOrders = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchApprovedOrders = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/fetchorder');
-        setAllOrders(response.data);
+        // Fetch only approved orders
+        const response = await axios.get('http://localhost:5000/api/approveorderstatus');
+        setAllOrders(response.data.data || []);
       } catch (error) {
         setAllOrders([]);
         console.log(error);
@@ -37,7 +41,7 @@ const FullfillOrders = () => {
         setLoading(false);
       }
     };
-    fetchOrders();
+    fetchApprovedOrders();
   }, []);
 
   const columns = [
@@ -45,10 +49,14 @@ const FullfillOrders = () => {
       field: 'orderDate',
       headerName: 'Order Date',
       flex: 1,
-      minWidth: 160,
+      minWidth: 180,
       renderCell: (params) => {
         const date = params.row?.orderDate;
-        return <span>{date ? new Date(date).toLocaleString() : 'N/A'}</span>;
+        return (
+          <span>
+            {date ? dayjs(date).format('DD/MM/YYYY, hh:mm A') : 'N/A'}
+          </span>
+        );
       }
     },
     {
@@ -71,8 +79,9 @@ const FullfillOrders = () => {
       minWidth: 140,
       type: 'number',
       renderCell: (params) => (
-        <Typography color="success.main" fontWeight="bold">
-          ₹ {Number(params.value).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        <Typography color="success.main" fontWeight="bold" display="flex" alignItems="center">
+          <CurrencyRupeeIcon fontSize="small" sx={{ mr: 0.2 }} />
+          {Number(params.value).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </Typography>
       )
     },
@@ -137,7 +146,7 @@ const FullfillOrders = () => {
           align="center"
           mb={4}
         >
-          Orders List
+          Approved Orders List
         </Typography>
         <Box sx={{ height: 500, width: '100%' }}>
           {loading ? (
@@ -178,7 +187,7 @@ const FullfillOrders = () => {
               components={{
                 NoRowsOverlay: () => (
                   <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
-                    No orders found.
+                    No approved orders found.
                   </Box>
                 ),
               }}
