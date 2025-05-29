@@ -74,7 +74,7 @@ const AddDistributer = () => {
       <Paper
         elevation={8}
         sx={{
-          maxWidth: 480,
+          maxWidth: 700,
           width: '100%',
           borderRadius: 4,
           p: { xs: 2, sm: 4 },
@@ -88,118 +88,129 @@ const AddDistributer = () => {
           sx={{ textAlign: 'center', pb: 0 }}
         />
         <CardContent>
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}
-          >
-            <TextField
-              label="Name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              fullWidth
-              helperText="Enter distributer's full name"
-            />
-            <TextField
-              label="Mobile"
-              name="mobile"
-              value={formData.mobile}
-              onChange={handleChange}
-              required
-              fullWidth
-              inputProps={{ maxLength: 10 }}
-              helperText="10-digit mobile number"
-            />
-            <TextField
-              label="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              fullWidth
-              type="email"
-              helperText="Distributer's email address"
-            />
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              fullWidth
-              helperText="Create a secure password"
-            />
-            <TextField
-              label="Distributer Type"
-              name="distType"
-              value={formData.distType}
-              onChange={handleChange}
-              fullWidth
-              helperText="E.g. Retail, Wholesale, etc."
-            />
-            <TextField
-              label="Address"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              fullWidth
-              helperText="Street address"
-            />
-            <Stack direction="row" spacing={2}>
-              <TextField
-                label="City"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                fullWidth
-              />
-              <TextField
-                label="State"
-                name="state"
-                value={formData.state}
-                onChange={handleChange}
-                fullWidth
-              />
-            </Stack>
-            <TextField
-              label="Pincode"
-              name="pincode"
-              value={formData.pincode}
-              onChange={handleChange}
-              type="number"
-              fullWidth
-              helperText="Area pincode"
-            />
+  <Box
+    component="form"
+    onSubmit={handleSubmit}
+    sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}
+  >
+    <Stack direction="row" spacing={2}>
+      <TextField
+        label="Name"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        required
+        fullWidth
+        helperText="Full name"
+        
+      />
+      <TextField
+        label="Mobile"
+        name="mobile"
+        value={formData.mobile}
+        onChange={handleChange}
+        required
+        fullWidth
+        inputProps={{ maxLength: 10 }}
+        helperText="10-digit number"
+      />
+    </Stack>
 
-            <Button
-              variant="contained"
-              type="submit"
-              size="large"
-              sx={{
-                mt: 2,
-                fontWeight: 'bold',
-                letterSpacing: 1,
-                boxShadow: 2,
-                py: 1.2,
-                background: 'linear-gradient(90deg, #1976d2 40%, #64b5f6 100%)',
-              }}
-            >
-              Create Distributer
-            </Button>
+    <Stack direction="row" spacing={2}>
+      <TextField
+        label="Email"
+        name="email"
+        value={formData.email}
+        onChange={handleChange}
+        required
+        fullWidth
+        type="email"
+        helperText="Email address"
+      />
+      <TextField
+        label="Password"
+        name="password"
+        type="password"
+        value={formData.password}
+        onChange={handleChange}
+        required
+        fullWidth
+        helperText="Secure password"
+      />
+    </Stack>
 
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={() => navigate('/dist/distlist')}
-              sx={{ mt: 1 }}
-            >
-              View Distributer List
-            </Button>
-          </Box>
-        </CardContent>
+    <TextField
+      label="Distributer Type"
+      name="distType"
+      value={formData.distType}
+      onChange={handleChange}
+      fullWidth
+      helperText="E.g. Retail, Wholesale"
+    />
+
+    <TextField
+      label="Address"
+      name="address"
+      value={formData.address}
+      onChange={handleChange}
+      fullWidth
+      helperText="Street address"
+    />
+
+    <Stack direction="row" spacing={2}>
+      <TextField
+        label="City"
+        name="city"
+        value={formData.city}
+        onChange={handleChange}
+        fullWidth
+      />
+      <TextField
+        label="State"
+        name="state"
+        value={formData.state}
+        onChange={handleChange}
+        fullWidth
+      />
+    </Stack>
+
+    <TextField
+      label="Pincode"
+      name="pincode"
+      value={formData.pincode}
+      onChange={handleChange}
+      type="number"
+      fullWidth
+      helperText="Area pincode"
+    />
+
+    <Button
+      variant="contained"
+      type="submit"
+      size="large"
+      sx={{
+        mt: 2,
+        fontWeight: 'bold',
+        letterSpacing: 1,
+        boxShadow: 2,
+        py: 1.2,
+        background: 'linear-gradient(90deg, #1976d2 40%, #64b5f6 100%)',
+      }}
+    >
+      Create Distributer
+    </Button>
+
+    <Button
+      variant="outlined"
+      color="secondary"
+      onClick={() => navigate('/dist/distlist')}
+      sx={{ mt: 1 }}
+    >
+      View Distributer List
+    </Button>
+  </Box>
+</CardContent>
+
       </Paper>
 
       <Snackbar

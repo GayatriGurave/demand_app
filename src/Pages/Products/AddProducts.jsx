@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Button,
-  Card,
   CardContent,
   CardHeader,
   FormControl,
@@ -14,7 +13,7 @@ import {
   Paper,
   Snackbar,
   Alert,
-  IconButton,
+  Stack,
 } from '@mui/material';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
@@ -47,17 +46,10 @@ const AddProducts = () => {
     if (selectImage) formData.append('prodimage', selectImage);
 
     try {
-      const result = await axios.post(
-        'http://localhost:5000/api/createproduct',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+      const result = await axios.post('http://localhost:5000/api/createproduct', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setSnackbar({ open: true, message: result.data.message || "Product created!", severity: 'success' });
-      // Optionally reset form
       setSelectImage(null);
       setPreview(null);
       setCategory('');
@@ -66,10 +58,6 @@ const AddProducts = () => {
       setSnackbar({ open: true, message: 'Failed to create product.', severity: 'error' });
       console.error(error);
     }
-  };
-
-  const handleViewProductList = () => {
-    navigate('/products/prodlist');
   };
 
   return (
@@ -83,14 +71,17 @@ const AddProducts = () => {
         py: 4,
       }}
     >
-      <Paper elevation={8} sx={{
-        maxWidth: 480,
-        width: '100%',
-        borderRadius: 4,
-        p: { xs: 2, sm: 4 },
-        boxShadow: '0 8px 32px rgba(0,0,0,0.09)',
-        background: "rgba(255,255,255,0.95)",
-      }}>
+      <Paper
+        elevation={8}
+        sx={{
+          maxWidth: 700, // Increased width
+          width: '100%',
+          borderRadius: 4,
+          p: { xs: 2, sm: 4 },
+          boxShadow: '0 8px 32px rgba(0,0,0,0.09)',
+          background: "rgba(255,255,255,0.95)",
+        }}
+      >
         <CardHeader
           avatar={<Inventory2Icon color="primary" sx={{ fontSize: 40 }} />}
           title={<Typography variant="h5" fontWeight="bold">Add New Product</Typography>}
@@ -119,6 +110,7 @@ const AddProducts = () => {
               helperText="E.g. Dairy, Bakery, etc."
             />
 
+            {/* Image Upload */}
             <Box
               sx={{
                 border: '2px dashed #90caf9',
@@ -155,6 +147,7 @@ const AddProducts = () => {
               )}
             </Box>
 
+            {/* Category Select */}
             <FormControl required fullWidth>
               <InputLabel>Category</InputLabel>
               <Select
@@ -168,29 +161,33 @@ const AddProducts = () => {
                 <MenuItem value="Butter Milk">Butter Milk</MenuItem>
                 <MenuItem value="ShriKhand">ShriKhand</MenuItem>
                 <MenuItem value="Ghee">Ghee</MenuItem>
+                <MenuItem value="Dairy">Dairy</MenuItem>
               </Select>
             </FormControl>
 
-            <TextField
-              label="Price"
-              name="price"
-              required
-              type="number"
-              fullWidth
-              variant="outlined"
-              inputProps={{ min: 0 }}
-              helperText="Set the price in INR"
-            />
+            {/* Price & Weight in One Row */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+              <TextField
+                label="Price"
+                name="price"
+                required
+                type="number"
+                fullWidth
+                variant="outlined"
+                inputProps={{ min: 0 }}
+                helperText="Set the price in INR"
+              />
+              <TextField
+                label="Weight"
+                name="weight"
+                required
+                fullWidth
+                variant="outlined"
+                helperText="E.g. 500g, 1L, etc."
+              />
+            </Stack>
 
-            <TextField
-              label="Weight"
-              name="weight"
-              required
-              fullWidth
-              variant="outlined"
-              helperText="E.g. 500g, 1L, etc."
-            />
-
+            {/* Buttons */}
             <Button
               variant="contained"
               type="submit"
@@ -210,7 +207,7 @@ const AddProducts = () => {
             <Button
               variant="outlined"
               color="secondary"
-              onClick={handleViewProductList}
+              onClick={() => navigate('/products/prodlist')}
               sx={{ mt: 1 }}
             >
               View Product List
@@ -219,6 +216,7 @@ const AddProducts = () => {
         </CardContent>
       </Paper>
 
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={3000}
