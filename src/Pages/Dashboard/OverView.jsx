@@ -139,7 +139,7 @@ const Overview = () => {
     try {
       const [productRes, orderRes, distributerRes] = await Promise.all([
         axios.get("http://localhost:5000/api/fetchproduct"),
-        axios.get("http://localhost:5000/api/fetchorder"),
+        axios.get("http://localhost:5000/api/distord"),
         axios.get("http://localhost:5000/api/fetchdist"),
       ]);
       setCounts({
@@ -267,7 +267,7 @@ const Overview = () => {
                 }}
               >
                 <Typography variant="h6" fontWeight="bold" color="primary" gutterBottom align="center">
-                  Current Overview (Bar Chart)
+                  Current Overview 
                 </Typography>
                 <BarChart
                   xAxis={[

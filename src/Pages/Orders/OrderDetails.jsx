@@ -25,14 +25,21 @@ const OrderDetails = () => {
   const orderData = useLocation().state;
   const theme = useTheme();
 
-  const initialRows = orderData?.orderItems?.map((ord, index) => ({
-    _id: ord.prodId?._id || index,
-    prodId: ord.prodId?._id || index,
-    title: ord.prodId?.title || 'N/A',
-    price: ord.prodId?.price || 0,
-    demandedQty: ord.demandedQty || 0,
-    exceptedQty: ord.exceptedQty || 0,
-  })) || [];
+  const initialRows = orderData?.orderItems?.map((ord, index) => {
+    const price = Number(ord.prodId?.price) || 0;
+    const exceptedQty = Number(ord.exceptedQty) || 0;
+
+    return {
+      _id: ord.prodId?._id || index,
+      prodId: ord.prodId?._id || index,
+      title: ord.prodId?.title || 'N/A',
+      price: price,
+      demandedQty: Number(ord.demandedQty) || 0,
+      exceptedQty: exceptedQty,
+      approvedAmount: price * exceptedQty,
+    };
+  }) || [];
+
 
   const [rows, setRows] = useState(initialRows);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -40,10 +47,25 @@ const OrderDetails = () => {
   const handleExceptedQtyChange = (id, value) => {
     setRows(prevRows =>
       prevRows.map(row =>
-        row._id === id ? { ...row, exceptedQty: value } : row
+        row._id === id
+          ? {
+            ...row,
+            exceptedQty: value,
+            approvedAmount: value * row.price, //  update approvedAmount dynamically
+          }
+          : row
       )
     );
   };
+
+
+  // const handleApprovedAmountChange = (id, value) => {
+  //   setRows(prevRows =>
+  //     prevRows.map(row =>
+  //       row._id === id ? { ...row, approvedAmount: value } : row
+  //     )
+  //   );
+  // };
 
   const handleSave = async () => {
     try {
@@ -52,7 +74,7 @@ const OrderDetails = () => {
         orderId: orderData._id,
       });
       console.log("DATA", result.data);
-      setSnackbarOpen(true); // Show snackbar
+      setSnackbarOpen(true);
     } catch (error) {
       console.error("Save failed:", error);
     }
@@ -95,11 +117,25 @@ const OrderDetails = () => {
       )
     },
     {
+      field: 'totalProductAmount',
+      headerName: 'Total Product Amount',
+      type: 'number',
+      width: 200,
+      valueGetter: (params) =>
+        (params?.row?.price ?? 0) * (params?.row?.demandedQty ?? 0),
+      renderCell: (params) => (
+        <Typography fontWeight={600}>
+          ₹{((params?.row?.price ?? 0) * (params?.row?.demandedQty ?? 0)).toFixed(2)}
+        </Typography>
+      )
+    },
+    {
       field: 'exceptedQty',
-      headerName: 'Excpected Qty',
+      headerName: 'Expected Qty',
       type: 'number',
       width: 180,
       renderCell: (params) => (
+
         <TextField
           type="number"
           size="small"
@@ -108,7 +144,19 @@ const OrderDetails = () => {
           inputProps={{ min: 0 }}
         />
       )
+    },
+    {
+      field: 'approvedAmount',
+      headerName: 'Approved Amount',
+      type: 'number',
+      width: 180,
+      renderCell: (params) => (
+        <Typography fontWeight={600}>
+          ₹{(params.value || 0).toFixed(2)}
+        </Typography>
+      )
     }
+
   ];
 
   const distributer = orderData?.distributerId || {};
@@ -179,6 +227,11 @@ const OrderDetails = () => {
             disableSelectionOnClick
           />
         </Box>
+        <Typography variant="h6" align="right" sx={{ mt: 2, fontWeight: 'bold' }}>
+          Total Approved Amount: ₹
+          {rows.reduce((sum, row) => sum + (row.approvedAmount || 0), 0).toFixed(2)}
+        </Typography>
+
         <Box display="flex" justifyContent="flex-end" mt={3}>
           <Button
             variant="contained"
@@ -191,7 +244,6 @@ const OrderDetails = () => {
         </Box>
       </Paper>
 
-      {/* Snackbar for Save Success */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

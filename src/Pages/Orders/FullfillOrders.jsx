@@ -72,10 +72,13 @@ const FullfillOrders = () => {
         />
       )
     },
+    
+    
     {
       field: 'orderTotalAmount',
       headerName: 'Total Amount',
       flex: 1,
+      
       minWidth: 140,
       type: 'number',
       renderCell: (params) => (
