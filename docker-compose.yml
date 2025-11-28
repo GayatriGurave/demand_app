@@ -1,0 +1,52 @@
+version: "3"
+services:
+  amulya-dairy-dist:
+    image: 7020079170/distributer-app
+    stdin_open: true
+    ports:
+      - "3001:3001"
+    networks:
+      - amulya-dairy
+
+  amulya-dairy-demand:
+    image: 7020079170/demand-app
+    stdin_open: true
+    ports:
+      - "3000:3000"
+    networks:
+      - amulya-dairy    
+
+  amulya-dairy-api:
+    image: 7020079170/demandserver-api
+    ports:
+      - "5000:5000"
+    networks:
+      - amulya-dairy
+    volumes:
+      - /app/uploads
+  mongo:
+    image: mongo:7.0.16
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - amulya-dairy
+    volumes:
+      - mongo-data:/data/db
+    command: ["mongod", "--auth", "--bind_ip", "127.0.0.1,mongo"]
+    # command: ["mongod", "--auth", "--bind_ip", "0.0.0.0"]
+
+    healthcheck:
+      test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+      interval: 30s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+
+networks:
+  amulya-dairy:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
